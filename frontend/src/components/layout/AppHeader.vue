@@ -65,7 +65,15 @@ async function onLogout() {
           Hola, {{ auth.user?.name }}
         </span>
         <RouterLink
-          v-if="auth.isAuthenticated"
+          v-if="auth.isAuthenticated && auth.user?.role === 'ADMIN'"
+          to="/admin"
+          :class="route.name === 'admin' ? 'text-white' : 'text-primary-100 hover:text-white'"
+          class="transition-colors font-semibold"
+        >
+          Panel Admin
+        </RouterLink>
+        <RouterLink
+          v-if="auth.isAuthenticated && auth.user?.role !== 'ADMIN'"
           :to="auth.user?.role === 'PROVEEDOR' ? '/perfil/proveedor' : '/perfil/empresa'"
           :class="(route.name === 'perfil-proveedor' || route.name === 'perfil-empresa') ? 'text-white' : 'text-primary-100 hover:text-white'"
           class="transition-colors"
@@ -133,6 +141,22 @@ async function onLogout() {
       >
         <i class="fas fa-user-plus mr-2 w-4"></i>Registro
       </RouterLink>
+      <RouterLink
+        v-if="auth.isAuthenticated && auth.user?.role === 'ADMIN'"
+        to="/admin"
+        @click="mobileMenuOpen = false"
+        class="hover:text-primary-200 transition-colors py-1 font-semibold"
+      >
+        <i class="fas fa-shield-alt mr-2 w-4"></i>Panel Admin
+      </RouterLink>
+      <RouterLink
+        v-if="auth.isAuthenticated && auth.user?.role !== 'ADMIN'"
+        :to="auth.user?.role === 'PROVEEDOR' ? '/perfil/proveedor' : '/perfil/empresa'"
+        @click="mobileMenuOpen = false"
+        class="hover:text-primary-200 transition-colors py-1"
+      >
+        <i class="fas fa-user mr-2 w-4"></i>Mi perfil
+      </RouterLink>
       <button
         v-if="auth.isAuthenticated"
         @click="onLogout"
@@ -140,14 +164,6 @@ async function onLogout() {
       >
         <i class="fas fa-sign-out-alt mr-2 w-4"></i>Salir
       </button>
-      <RouterLink
-        v-if="auth.isAuthenticated"
-        :to="auth.user?.role === 'PROVEEDOR' ? '/perfil/proveedor' : '/perfil/empresa'"
-        @click="mobileMenuOpen = false"
-        class="hover:text-primary-200 transition-colors py-1"
-      >
-        <i class="fas fa-user mr-2 w-4"></i>Mi perfil
-      </RouterLink>
       <RouterLink
         v-if="auth.isAuthenticated && auth.user?.role === 'PROVEEDOR'"
         to="/perfil/proveedor"

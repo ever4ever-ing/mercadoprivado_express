@@ -14,7 +14,11 @@ const form = ref({
 async function submit() {
   try {
     await auth.login(form.value)
-    await router.push({ name: 'home' })
+    if (auth.user?.role === 'ADMIN') {
+      await router.push({ name: 'admin' })
+    } else {
+      await router.push({ name: 'home' })
+    }
   } catch {
     // El error de UI se maneja en el store
   }
