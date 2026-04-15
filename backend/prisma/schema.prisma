@@ -1,0 +1,301 @@
+// =============================================================
+// schema.prisma — Directorio B2B de Servicios Industriales
+// =============================================================
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// =============================================================
+// ENUMS
+// =============================================================
+
+enum Role {
+  EMPRESA
+  PROVEEDOR
+  ADMIN
+}
+
+enum ProviderStatus {
+  PENDING    // Esperando aprobación del admin
+  ACTIVE     // Visible en el directorio
+  SUSPENDED  // Suspendido por el admin
+}
+
+enum Badge {
+  GOLD    // Score >= 4.5
+  SILVER  // Score >= 3.5
+  BRONZE  // Score >= 2.5
+}
+
+enum Category {
+  PINTURA
+  SOLDADURA
+  ELECTRICO
+  MANTENIMIENTO
+  LIMPIEZA
+  GASFITERIA
+  CLIMATIZACION
+  CONSTRUCCION
+  OTRO
+}
+
+enum InquiryStatus {
+  PENDING  // Recibida, sin respuesta
+  REPLIED  // Proveedor respondió
+  CLOSED   // Cerrada por cualquier parte
+}
+
+enum DocumentType {
+  RUT
+  INICIO_ACTIVIDADES
+  SEGURO_RESPONSABILIDAD
+  CERTIFICACION
+  OTRO
+}
+
+enum DocumentStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+// =============================================================
+// USER — cuenta base para todos los roles
+// =============================================================
+
+model User {
+  id        String   @id @default(uuid())
+  email     String   @unique
+  password  String
+  role      Role     @default(EMPRESA)
+  name      String
+  phone     String?
+  active    Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relaciones
+  provider      Provider?
+  reviewsGiven  Review[]   @relation("ReviewAuthor")
+  inquiriesSent Inquiry[]  @relation("InquirySender")
+  refreshTokens RefreshToken[]
+
+  @@index([email])
+  @@map("users")
+}
+
+// =============================================================
+// REFRESH TOKEN — para rotar tokens JWT
+// =============================================================
+
+model RefreshToken {
+  id        String   @id @default(uuid())
+  token     String   @unique
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+
+  @@index([userId])
+  @@index([token])
+  @@map("refresh_tokens")
+}
+
+// =============================================================
+// PROVIDER — perfil del proveedor de servicios
+// =============================================================
+
+model Provider {
+  id          String         @id @default(uuid())
+  userId      String         @unique
+  user        User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  // Datos del negocio
+  businessName String
+  description  String?
+  logoUrl      String?
+  website      String?
+
+  // Ubicación
+  region      String
+  city        String?
+  address     String?
+
+  // Score calculado automáticamente
+  score          Float          @default(0)
+  badge          Badge?
+  reviewCount    Int            @default(0)
+  responseTimeHs Float?         // Tiempo promedio de respuesta en horas
+
+  // Estado y moderación
+  status         ProviderStatus @default(PENDING)
+  featuredUntil  DateTime?      // Para proveedores destacados (plan premium)
+  profileComplete Boolean       @default(false)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relaciones
+  services      Service[]
+  portfolio     PortfolioImage[]
+  reviews       Review[]
+  inquiries     Inquiry[]
+  documents     ProviderDocument[]
+
+  @@index([status])
+  @@index([region])
+  @@index([score])
+  @@index([badge])
+  @@map("providers")
+}
+
+// =============================================================
+// SERVICE — servicios que ofrece un proveedor
+// =============================================================
+
+model Service {
+  id          String    @id @default(uuid())
+  providerId  String
+  provider    Provider  @relation(fields: [providerId], references: [id], onDelete: Cascade)
+
+  category    Category
+  title       String
+  description String?
+  priceFrom   Float?    // Precio referencial mínimo
+  priceTo     Float?    // Precio referencial máximo
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([providerId])
+  @@index([category])
+  @@map("services")
+}
+
+// =============================================================
+// PORTFOLIO IMAGE — fotos de trabajos realizados
+// =============================================================
+
+model PortfolioImage {
+  id          String   @id @default(uuid())
+  providerId  String
+  provider    Provider @relation(fields: [providerId], references: [id], onDelete: Cascade)
+
+  url         String
+  publicId    String   // ID en Cloudinary para poder eliminarla
+  caption     String?
+  order       Int      @default(0)
+
+  createdAt DateTime @default(now())
+
+  @@index([providerId])
+  @@map("portfolio_images")
+}
+
+// =============================================================
+// PROVIDER DOCUMENT — documentos de verificación
+// =============================================================
+
+model ProviderDocument {
+  id          String         @id @default(uuid())
+  providerId  String
+  provider    Provider       @relation(fields: [providerId], references: [id], onDelete: Cascade)
+
+  type        DocumentType
+  url         String
+  publicId    String
+  status      DocumentStatus @default(PENDING)
+  reviewedAt  DateTime?
+  reviewNote  String?        // Comentario del admin si rechaza
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([providerId, type])
+  @@index([providerId])
+  @@index([status])
+  @@map("provider_documents")
+}
+
+// =============================================================
+// REVIEW — reseñas verificadas de empresas clientes
+// =============================================================
+
+model Review {
+  id         String   @id @default(uuid())
+  providerId String
+  provider   Provider @relation(fields: [providerId], references: [id], onDelete: Cascade)
+  authorId   String
+  author     User     @relation("ReviewAuthor", fields: [authorId], references: [id])
+
+  rating     Int      // 1–5
+  comment    String?
+  verified   Boolean  @default(false) // true si hubo una Inquiry cerrada entre ambos
+  reported   Boolean  @default(false)
+
+  providerReply  String?   // Respuesta pública del proveedor
+  repliedAt      DateTime? // Cuándo respondió
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([providerId, authorId]) // una reseña por empresa por proveedor
+  @@index([providerId])
+  @@index([authorId])
+  @@map("reviews")
+}
+
+// =============================================================
+// INQUIRY — solicitudes de contacto / cotización
+// =============================================================
+
+model Inquiry {
+  id          String        @id @default(uuid())
+  providerId  String
+  provider    Provider      @relation(fields: [providerId], references: [id])
+  senderId    String
+  sender      User          @relation("InquirySender", fields: [senderId], references: [id])
+
+  // Datos del formulario
+  contactName  String
+  company      String?
+  serviceNeeded String
+  description  String
+  phone        String?
+  email        String
+
+  status      InquiryStatus @default(PENDING)
+  repliedAt   DateTime?
+  closedAt    DateTime?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([providerId])
+  @@index([senderId])
+  @@index([status])
+  @@map("inquiries")
+}
+
+// =============================================================
+// SCORE LOG — historial de cambios de score (auditoría)
+// =============================================================
+
+model ScoreLog {
+  id          String   @id @default(uuid())
+  providerId  String
+  scoreBefore Float
+  scoreAfter  Float
+  reason      String   // "new_review", "document_verified", "response_time_updated"
+
+  createdAt DateTime @default(now())
+
+  @@index([providerId])
+  @@map("score_logs")
+}

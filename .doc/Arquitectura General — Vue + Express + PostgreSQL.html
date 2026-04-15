@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<!-- saved from url=(0074)file:///C:/Users/USUARIO/Downloads/arquitectura_general_vue_express_2.html -->
+<html lang="es"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Arquitectura General — Vue + Express + PostgreSQL</title>
+<style>
+  :root {
+    --blue-50: #E6F1FB; --blue-600: #185FA5; --blue-800: #0C447C;
+    --purple-50: #EEEDFE; --purple-600: #534AB7; --purple-800: #3C3489;
+    --teal-50: #E1F5EE; --teal-600: #0F6E56; --teal-800: #085041;
+    --gray-50: #F1EFE8; --gray-600: #5F5E5A; --gray-800: #444441;
+    --border: rgba(0,0,0,0.12);
+    --text: #1a1a18;
+    --text-sec: #5f5e5a;
+    --bg: #ffffff;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --blue-50: #0C447C; --blue-600: #85B7EB; --blue-800: #B5D4F4;
+      --purple-50: #3C3489; --purple-600: #AFA9EC; --purple-800: #CECBF6;
+      --teal-50: #085041; --teal-600: #5DCAA5; --teal-800: #9FE1CB;
+      --gray-50: #444441; --gray-600: #B4B2A9; --gray-800: #D3D1C7;
+      --border: rgba(255,255,255,0.12);
+      --text: #e8e6de;
+      --text-sec: #9c9a92;
+      --bg: #1a1a18;
+    }
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background: var(--bg);
+    font-family: 'Georgia', serif;
+    padding: 32px 24px;
+    min-height: 100vh;
+  }
+  h1 {
+    font-family: 'Georgia', serif;
+    font-size: 13px;
+    font-weight: normal;
+    color: var(--text-sec);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    margin-bottom: 24px;
+  }
+  svg text { font-family: system-ui, sans-serif; }
+  .card {
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 24px;
+    max-width: 860px;
+    margin: 0 auto;
+  }
+</style>
+</head>
+<body>
+<div class="card">
+  <h1>Directorio B2B de servicios · Arquitectura general</h1>
+<svg width="100%" viewBox="0 0 680 520" role="img" xmlns="http://www.w3.org/2000/svg">
+  <title>Arquitectura general Vue + Express + PostgreSQL</title>
+  <desc>Diagrama estructural de tres capas: frontend Vue, backend Express y base de datos PostgreSQL</desc>
+  <defs>
+    <style>
+      .th { font-family: system-ui, sans-serif; font-size: 14px; font-weight: 500; fill: var(--text); }
+      .ts { font-family: system-ui, sans-serif; font-size: 12px; font-weight: 400; fill: var(--text-sec); }
+
+      .c-blue rect, .c-blue circle { fill: var(--blue-50); stroke: var(--blue-600); }
+      .c-blue .th { fill: var(--blue-800); }
+      .c-blue .ts { fill: var(--blue-600); }
+
+      .c-purple rect, .c-purple circle { fill: var(--purple-50); stroke: var(--purple-600); }
+      .c-purple .th { fill: var(--purple-800); }
+      .c-purple .ts { fill: var(--purple-600); }
+
+      .c-teal rect, .c-teal circle { fill: var(--teal-50); stroke: var(--teal-600); }
+      .c-teal .th { fill: var(--teal-800); }
+      .c-teal .ts { fill: var(--teal-600); }
+
+      .c-gray rect, .c-gray circle { fill: var(--gray-50); stroke: var(--gray-600); }
+      .c-gray .th { fill: var(--gray-800); }
+      .c-gray .ts { fill: var(--gray-600); }
+
+      .node { cursor: pointer; }
+      .node:hover rect { opacity: 0.85; }
+      .arr { stroke: var(--text-sec); stroke-width: 1; fill: none; }
+    </style>
+    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M2 1L8 5L2 9" fill="none" stroke="context-stroke" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path>
+    </marker>
+  </defs>
+
+  <!-- CAPA FRONTEND -->
+  <g class="c-blue">
+    <rect x="40" y="30" width="600" height="130" rx="14" stroke-width="0.5"></rect>
+    <text class="th" x="60" y="56" dominant-baseline="central">Frontend — Vue 3 + Vite</text>
+    <text class="ts" x="60" y="74" dominant-baseline="central">Puerto 5173 (dev) · Axios para HTTP · Pinia para estado global</text>
+  </g>
+
+  <g class="node c-blue">
+    <rect x="60" y="88" width="140" height="56" rx="8" stroke-width="0.5"></rect>
+    <text class="th" x="130" y="111" text-anchor="middle" dominant-baseline="central">Vistas públicas</text>
+    <text class="ts" x="130" y="129" text-anchor="middle" dominant-baseline="central">Directorio, perfil, home</text>
+  </g>
+  <g class="node c-blue">
+    <rect x="220" y="88" width="140" height="56" rx="8" stroke-width="0.5"></rect>
+    <text class="th" x="290" y="111" text-anchor="middle" dominant-baseline="central">Panel proveedor</text>
+    <text class="ts" x="290" y="129" text-anchor="middle" dominant-baseline="central">Perfil, solicitudes</text>
+  </g>
+  <g class="node c-blue">
+    <rect x="380" y="88" width="130" height="56" rx="8" stroke-width="0.5"></rect>
+    <text class="th" x="445" y="111" text-anchor="middle" dominant-baseline="central">Panel admin</text>
+    <text class="ts" x="445" y="129" text-anchor="middle" dominant-baseline="central">Moderación, métricas</text>
+  </g>
+  <g class="node c-blue">
+    <rect x="530" y="88" width="90" height="56" rx="8" stroke-width="0.5"></rect>
+    <text class="th" x="575" y="111" text-anchor="middle" dominant-baseline="central">Auth</text>
+    <text class="ts" x="575" y="129" text-anchor="middle" dominant-baseline="central">Login, registro</text>
+  </g>
+
+  <!-- FLECHA -->
+  <line x1="340" y1="162" x2="340" y2="188" stroke="var(--text-sec)" stroke-width="1" marker-end="url(#arrow)"></line>
+  <text class="ts" x="355" y="178" dominant-baseline="central">HTTP / JSON</text>
+
+  <!-- CAPA BACKEND -->
+  <g class="c-purple">
+    <rect x="40" y="190" width="600" height="160" rx="14" stroke-width="0.5"></rect>
+    <text class="th" x="60" y="216" dominant-baseline="central">Backend — Express + Node.js</text>
+    <text class="ts" x="60" y="234" dominant-baseline="central">Puerto 3000 · JWT Auth · Middleware de validación (Zod) · Multer (archivos)</text>
+  </g>
+
+  <g class="node c-purple">
+    <rect x="60" y="248" width="120" height="84" rx="8" stroke-width="0.5"></rect>
+    <text class="th" x="120" y="272" text-anchor="middle" dominant-baseline="central">Middleware</text>
+    <text class="ts" x="120" y="291" text-anchor="middle" dominant-baseline="central">Auth JWT</text>
+    <text class="ts" x="120" y="308" text-anchor="middle" dominant-baseline="central">Rate limiting</text>
+    <text class="ts" x="120" y="323" text-anchor="middle" dominant-baseline="central">CORS</text>
+  </g>
+  <g class="node c-purple">
+    <rect x="200" y="248" width="120" height="84" rx="8" stroke-width="0.5"></rect>
+    <text class="th" x="260" y="272" text-anchor="middle" dominant-baseline="central">Routers API</text>
+    <text class="ts" x="260" y="291" text-anchor="middle" dominant-baseline="central">/auth</text>
+    <text class="ts" x="260" y="308" text-anchor="middle" dominant-baseline="central">/providers</text>
+    <text class="ts" x="260" y="323" text-anchor="middle" dominant-baseline="central">/reviews</text>
+  </g>
+  <g class="node c-purple">
+    <rect x="340" y="248" width="130" height="84" rx="8" stroke-width="0.5"></rect>
+    <text class="th" x="405" y="272" text-anchor="middle" dominant-baseline="central">Score service</text>
+    <text class="ts" x="405" y="291" text-anchor="middle" dominant-baseline="central">Cálculo automático</text>
+    <text class="ts" x="405" y="308" text-anchor="middle" dominant-baseline="central">Actualiza al crear</text>
+    <text class="ts" x="405" y="323" text-anchor="middle" dominant-baseline="central">reseña / evento</text>
+  </g>
+  <g class="node c-purple">
+    <rect x="490" y="248" width="130" height="84" rx="8" stroke-width="0.5"></rect>
+    <text class="th" x="555" y="272" text-anchor="middle" dominant-baseline="central">Servicios externos</text>
+    <text class="ts" x="555" y="291" text-anchor="middle" dominant-baseline="central">Nodemailer</text>
+    <text class="ts" x="555" y="308" text-anchor="middle" dominant-baseline="central">Cloudinary</text>
+    <text class="ts" x="555" y="323" text-anchor="middle" dominant-baseline="central">Stripe</text>
+  </g>
+
+  <!-- FLECHA -->
+  <line x1="340" y1="352" x2="340" y2="378" stroke="var(--text-sec)" stroke-width="1" marker-end="url(#arrow)"></line>
+  <text class="ts" x="355" y="368" dominant-baseline="central">Prisma ORM</text>
+
+  <!-- CAPA BASE DE DATOS -->
+  <g class="c-teal">
+    <rect x="40" y="380" width="600" height="110" rx="14" stroke-width="0.5"></rect>
+    <text class="th" x="60" y="406" dominant-baseline="central">Base de datos — PostgreSQL</text>
+    <text class="ts" x="60" y="424" dominant-baseline="central">Prisma como ORM · Migraciones versionadas · Índices en búsqueda y score</text>
+  </g>
+
+  <g class="node c-teal">
+    <rect x="60" y="436" width="100" height="40" rx="6" stroke-width="0.5"></rect>
+    <text class="th" x="110" y="456" text-anchor="middle" dominant-baseline="central">users</text>
+  </g>
+  <g class="node c-teal">
+    <rect x="175" y="436" width="100" height="40" rx="6" stroke-width="0.5"></rect>
+    <text class="th" x="225" y="456" text-anchor="middle" dominant-baseline="central">providers</text>
+  </g>
+  <g class="node c-teal">
+    <rect x="290" y="436" width="100" height="40" rx="6" stroke-width="0.5"></rect>
+    <text class="th" x="340" y="456" text-anchor="middle" dominant-baseline="central">services</text>
+  </g>
+  <g class="node c-teal">
+    <rect x="405" y="436" width="100" height="40" rx="6" stroke-width="0.5"></rect>
+    <text class="th" x="455" y="456" text-anchor="middle" dominant-baseline="central">reviews</text>
+  </g>
+  <g class="node c-teal">
+    <rect x="520" y="436" width="100" height="40" rx="6" stroke-width="0.5"></rect>
+    <text class="th" x="570" y="456" text-anchor="middle" dominant-baseline="central">inquiries</text>
+  </g>
+
+  <text class="ts" x="340" y="498" text-anchor="middle" dominant-baseline="central">Vue 3 + Vite · Express + Node.js · PostgreSQL + Prisma</text>
+</svg>
+</div>
+
+
+</body></html>
