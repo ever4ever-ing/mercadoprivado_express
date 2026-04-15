@@ -2,7 +2,7 @@
 import { computed, onMounted, ref } from 'vue'
 import { useRoute } from 'vue-router'
 import { getProviderById, createReview, listProviderReviews } from '@/services/providers'
-import type { ProviderDetail, ProviderReview } from '@/types'
+import type { ProviderDetail } from '@/types'
 import ScoreBadge from '@/components/providers/ScoreBadge.vue'
 import { useAuthStore } from '@/stores/auth'
 

@@ -1,0 +1,19 @@
+# Variables de entorno (nunca subir al repo)
+.env
+.env.local
+.env.*.local
+
+# Dependencias
+node_modules/
+
+# Builds
+frontend/dist/
+backend/dist/
+
+# Logs
+*.log
+npm-debug.log*
+
+# OS
+.DS_Store
+Thumbs.db
