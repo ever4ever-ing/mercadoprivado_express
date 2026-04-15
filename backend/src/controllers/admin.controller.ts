@@ -1,5 +1,5 @@
 import { Response } from 'express'
-import { Prisma, ProviderStatus, DocumentStatus } from '@prisma/client'
+import { Prisma, ProviderStatus, DocumentStatus, Role } from '@prisma/client'
 import { prisma } from '../lib/prisma'
 import { AuthRequest } from '../middleware/auth.middleware'
 import { recalculateScore } from '../services/score.service'
@@ -108,7 +108,10 @@ export async function getStats(req: AuthRequest, res: Response): Promise<void> {
     totalInquiries,
     inquiriesLastMonth,
     totalReviews,
-    reviewsLastMonth
+    reviewsLastMonth,
+    totalEmpresas,
+    totalProveedores,
+    inactiveUsers
   ] = await Promise.all([
     prisma.provider.count(),
     prisma.provider.count({ where: { status: 'ACTIVE' } }),
@@ -117,7 +120,10 @@ export async function getStats(req: AuthRequest, res: Response): Promise<void> {
     prisma.inquiry.count(),
     prisma.inquiry.count({ where: { createdAt: { gte: thirtyDaysAgo } } }),
     prisma.review.count(),
-    prisma.review.count({ where: { createdAt: { gte: thirtyDaysAgo } } })
+    prisma.review.count({ where: { createdAt: { gte: thirtyDaysAgo } } }),
+    prisma.user.count({ where: { role: Role.EMPRESA } }),
+    prisma.user.count({ where: { role: Role.PROVEEDOR } }),
+    prisma.user.count({ where: { active: false } })
   ])
 
   res.json({
@@ -134,6 +140,96 @@ export async function getStats(req: AuthRequest, res: Response): Promise<void> {
     reviews: {
       total:     totalReviews,
       lastMonth: reviewsLastMonth
+    },
+    users: {
+      empresas:   totalEmpresas,
+      proveedores: totalProveedores,
+      inactive:   inactiveUsers
     }
   })
+}
+
+export async function listUsers(req: AuthRequest, res: Response): Promise<void> {
+  const page  = Math.max(1,  parseInt(req.query.page  as string) || 1)
+  const limit = Math.min(50, parseInt(req.query.limit as string) || 20)
+  const role  = req.query.role as Role | undefined
+  const search = req.query.search as string | undefined
+
+  const where: Prisma.UserWhereInput = {
+    role: role ?? { in: [Role.EMPRESA, Role.PROVEEDOR] },
+    ...(search && {
+      OR: [
+        { email: { contains: search, mode: 'insensitive' } },
+        { name:  { contains: search, mode: 'insensitive' } }
+      ]
+    })
+  }
+
+  const [total, users] = await Promise.all([
+    prisma.user.count({ where }),
+    prisma.user.findMany({
+      where,
+      orderBy: { createdAt: 'desc' },
+      skip:    (page - 1) * limit,
+      take:    limit,
+      select: {
+        id:        true,
+        email:     true,
+        name:      true,
+        role:      true,
+        phone:     true,
+        active:    true,
+        createdAt: true,
+        provider:  { select: { id: true, businessName: true, status: true } }
+      }
+    })
+  ])
+
+  res.json({ data: users, total, page, limit })
+}
+
+export async function setUserActive(req: AuthRequest, res: Response): Promise<void> {
+  const { id } = req.params
+  const { active } = req.body
+
+  if (typeof active !== 'boolean') {
+    res.status(400).json({ error: 'El campo "active" debe ser true o false' })
+    return
+  }
+
+  const user = await prisma.user.findUnique({ where: { id } })
+  if (!user) {
+    res.status(404).json({ error: 'Usuario no encontrado' })
+    return
+  }
+  if (user.role === Role.ADMIN) {
+    res.status(403).json({ error: 'No se puede modificar a otro administrador' })
+    return
+  }
+
+  const updated = await prisma.user.update({
+    where: { id },
+    data:  { active },
+    select: { id: true, email: true, name: true, role: true, active: true }
+  })
+
+  res.json(updated)
+}
+
+export async function deleteUser(req: AuthRequest, res: Response): Promise<void> {
+  const { id } = req.params
+
+  const user = await prisma.user.findUnique({ where: { id } })
+  if (!user) {
+    res.status(404).json({ error: 'Usuario no encontrado' })
+    return
+  }
+  if (user.role === Role.ADMIN) {
+    res.status(403).json({ error: 'No se puede eliminar a otro administrador' })
+    return
+  }
+
+  await prisma.user.delete({ where: { id } })
+
+  res.status(204).send()
 }

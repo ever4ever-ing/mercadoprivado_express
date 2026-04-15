@@ -15,6 +15,18 @@ export interface AdminStats {
   providers: { total: number; active: number; pending: number; suspended: number }
   inquiries: { total: number; lastMonth: number }
   reviews:   { total: number; lastMonth: number }
+  users:     { empresas: number; proveedores: number; inactive: number }
+}
+
+export interface AdminUser {
+  id:        string
+  email:     string
+  name:      string
+  role:      'EMPRESA' | 'PROVEEDOR'
+  phone?:    string
+  active:    boolean
+  createdAt: string
+  provider?: { id: string; businessName: string; status: string } | null
 }
 
 export async function getStats(): Promise<AdminStats> {
@@ -38,4 +50,24 @@ export async function updateProviderStatus(id: string, status: string): Promise<
 
 export async function deleteReview(id: string): Promise<void> {
   await api.delete(`/admin/reviews/${id}`)
+}
+
+export async function listAdminUsers(
+  page = 1,
+  role?: string,
+  search?: string
+): Promise<{ data: AdminUser[]; total: number }> {
+  const params: Record<string, unknown> = { page, limit: 20 }
+  if (role)   params.role   = role
+  if (search) params.search = search
+  const { data } = await api.get('/admin/users', { params })
+  return data
+}
+
+export async function setUserActive(id: string, active: boolean): Promise<void> {
+  await api.patch(`/admin/users/${id}/active`, { active })
+}
+
+export async function deleteAdminUser(id: string): Promise<void> {
+  await api.delete(`/admin/users/${id}`)
 }

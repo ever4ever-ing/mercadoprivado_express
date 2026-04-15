@@ -15,4 +15,9 @@ router.patch('/providers/:id/status',      catchAsync(admin.updateProviderStatus
 router.delete('/reviews/:id',              catchAsync(admin.deleteReview))
 router.patch('/documents/:id/status',      catchAsync(admin.verifyDocument))
 
+// Gestión de usuarios registrados
+router.get('/users',                       catchAsync(admin.listUsers))
+router.patch('/users/:id/active',          catchAsync(admin.setUserActive))
+router.delete('/users/:id',               catchAsync(admin.deleteUser))
+
 export default router
