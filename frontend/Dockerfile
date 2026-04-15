@@ -8,7 +8,7 @@ RUN npm ci
 
 COPY . .
 
-RUN npm run build
+RUN npx vite build
 
 # Stage 2: serve with nginx
 FROM nginx:alpine AS runner

@@ -16,15 +16,30 @@ IP: `52.54.104.52`
 
 ---
 
-## 2. Conectarse a la instancia
+## 2. Permisos del archivo .pem (Windows)
 
-```bash
-ssh -i tu-key.pem ubuntu@52.54.104.52
+Si ves el error `WARNING: UNPROTECTED PRIVATE KEY FILE!`, ejecuta esto en **PowerShell como administrador**:
+
+```powershell
+$keyPath = "C:\Users\USUARIO\OneDrive\Escritorio\keys.pem"
+
+icacls $keyPath /inheritance:r
+icacls $keyPath /grant:r "$($env:USERNAME):(R)"
+icacls $keyPath /remove "BUILTIN\Usuarios"
+icacls $keyPath /remove "Everyone"
 ```
 
 ---
 
-## 3. Instalar Docker
+## 3. Conectarse a la instancia
+
+```bash
+ssh -i keys.pem ubuntu@52.54.104.52
+```
+
+---
+
+## 4. Instalar Docker
 
 ```bash
 curl -fsSL https://get.docker.com | sh
@@ -35,12 +50,12 @@ exit
 Reconectar para que el grupo `docker` tome efecto:
 
 ```bash
-ssh -i tu-key.pem ubuntu@52.54.104.52
+ssh -i keys.pem ubuntu@52.54.104.52
 ```
 
 ---
 
-## 4. Clonar el repositorio
+## 5. Clonar el repositorio
 
 ```bash
 git clone https://github.com/tu-usuario/mercadoprivadochile.git
@@ -49,7 +64,7 @@ cd mercadoprivadochile
 
 ---
 
-## 5. Configurar variables de entorno
+## 6. Configurar variables de entorno
 
 ```bash
 cp .env.example .env
@@ -92,7 +107,7 @@ openssl rand -base64 64   # copiar resultado → JWT_REFRESH_SECRET
 
 ---
 
-## 6. Levantar los contenedores
+## 7. Levantar los contenedores
 
 ```bash
 docker compose up -d --build
@@ -116,7 +131,7 @@ mercadoprivado_nginx        running
 
 ---
 
-## 7. Verificar migraciones
+## 8. Verificar migraciones
 
 ```bash
 docker compose logs backend
@@ -131,7 +146,7 @@ Server running on port 3000
 
 ---
 
-## 8. Acceder a la app
+## 9. Acceder a la app
 
 Abrir en el navegador:
 
